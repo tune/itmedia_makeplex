@@ -82,27 +82,40 @@ end
 #
 # 手牌を再帰的に解析し待ちを表示する
 #
+# 順子を刻子に優先して探索する。
+# 順子はfromが9〜18の時に探索される
+#
 def analyzeTehai(pai, from=0, mentsu=[])
+  shuntsu_phase = 9
+  skip_anko_check = false
+
+  if from >= 9 then
+    skip_anko_check = true 
+    from -= shuntsu_phase
+  end
+
   if pai.sum > 4 then
     # 面子を揃える
     
     # 刻子
-    from.upto(8).each do |i|
-      if pai[i] >= 3 then
-        tmp = pai.dup
-        tmp[i] -= 3
-        analyzeTehai(tmp, i+1, mentsu+[i.anko])
+    unless skip_anko_check then
+      from.upto(8).each do |i|
+        if pai[i] >= 3 then
+          tmp = pai.dup
+          tmp[i] -= 3
+          analyzeTehai(tmp, i+1, mentsu+[i.anko])
+        end
       end
     end
   
     # 順子
-    [0, from-9].max.upto(6).each do |i|
+    from.upto(6).each do |i|
       if pai[i]>=1 && pai[i+1]>=1 && pai[i+2]>=1 then
         tmp = pai.dup
         tmp[i] -= 1
         tmp[i+1] -= 1
         tmp[i+2] -= 1
-        analyzeTehai(tmp, i+9, mentsu+[i.shuntsu])
+        analyzeTehai(tmp, i+shuntsu_phase, mentsu+[i.shuntsu])
       end
     end
 
@@ -120,16 +133,18 @@ def analyzeTehai(pai, from=0, mentsu=[])
 
     # 面子(刻子 or 順子)があれば単騎待ち
     # 刻子
-    from.upto(8).each do |i|
-      if pai[i] >= 3 then
-        tmp = pai.dup
-        tmp[i] -= 3
-        analyzeTanki(tmp, mentsu+[i.anko])
+    unless skip_anko_check then
+      from.upto(8).each do |i|
+        if pai[i] >= 3 then
+          tmp = pai.dup
+          tmp[i] -= 3
+          analyzeTanki(tmp, mentsu+[i.anko])
+        end
       end
     end
   
     # 順子
-    [0, from-9].max.upto(6).each do |i|
+    from.upto(6).each do |i|
       if pai[i]>=1 && pai[i+1]>=1 && pai[i+2]>=1 then
         tmp = pai.dup
         tmp[i] -= 1
@@ -175,7 +190,9 @@ def analyzeTanki(pai, mentsu)
   end
 end
 
+
 # 以下実際の処理
 pai = parsePai ARGV[0] unless ARGV[0] == nil
 analyzeTehai(pai)
+
 
