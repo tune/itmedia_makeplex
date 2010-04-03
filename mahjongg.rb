@@ -1,7 +1,16 @@
 #!/usr/bin/ruby
 
+class Array
+  def sum
+    s = 0
+    self.each do |v|
+      s += v
+    end
+    return s
+  end
+end
+
 class Fixnum
-  # 面子の出力用
   # 刻子
   def anko
     num = self+1
@@ -20,14 +29,13 @@ class Fixnum
     "(#{num},#{num})"
   end
 
-  # 待ちの出力用
   # 単騎
   def tanki
     num = self+1
     "[#{num}]"
   end
 
-  # リャンメン(ペンチャンもかねる)
+  # リャンメン(ペンチャンも兼ねる)
   def ryanmen
     num = self+1
     "[#{num},#{num+1}]"
@@ -47,7 +55,7 @@ class Fixnum
 end
 
 #
-# 引数として指定された数字列を解析
+# 雀牌を表す数字列を解析し、0〜8の配列に与えられた個数を入れて返す
 #
 def parsePai(str)
   pai = Array.new(9, 0)
@@ -55,14 +63,27 @@ def parsePai(str)
     pai[p.to_i-1] += 1
   end
 
+  # 入力の妥当性チェック
+  if pai.sum != 13 then
+    # 与えられる数字は13毎
+    raise RuntimeError
+  else
+    pai.each do |val|
+      if val > 4 then
+        # 1種類の牌が4枚より多いことはない
+        raise RuntimeError
+      end
+    end
+  end
+
   return pai
 end
 
 #
-# 手牌を解析して待ちを表示する
+# 手牌を再帰的に解析し待ちを表示する
 #
-def analyzeTehai(pai, mentsu=0, from=0, str="")
-  if mentsu < 3 then
+def analyzeTehai(pai, from=0, str="")
+  if pai.sum > 4 then
     # 面子を揃える
    
     # 刻子
@@ -70,7 +91,7 @@ def analyzeTehai(pai, mentsu=0, from=0, str="")
       if pai[i] >= 3 then
         tmp = pai.dup
         tmp[i] -= 3
-        analyzeTehai(tmp, mentsu+1, i+1, str + i.anko)
+        analyzeTehai(tmp, i+1, str + i.anko)
       end
     end
   
@@ -81,13 +102,13 @@ def analyzeTehai(pai, mentsu=0, from=0, str="")
         tmp[i] -= 1
         tmp[i+1] -= 1
         tmp[i+2] -= 1
-        analyzeTehai(tmp, mentsu+1, i+9, str + i.shuntsu)
+        analyzeTehai(tmp, i+9, str + i.shuntsu)
       end
     end
 
   else
-    # 待ちを絞る
-
+    # 残った4枚から待ちを絞る
+    
     # アタマを探す
     0.upto(8).each do |i|
       if pai[i] >= 2 then
@@ -120,6 +141,9 @@ def analyzeTehai(pai, mentsu=0, from=0, str="")
   end
 end
 
+#
+# 4枚から待ちを絞る
+#
 def analyzeMachi(pai, str)
   # リャンメン(ペンチャン)
   0.upto(7).each do |i|
@@ -143,6 +167,9 @@ def analyzeMachi(pai, str)
   end
 end
 
+#
+# 単騎待ちの数字を調べて待ちを表示する
+#
 def analyzeTanki(pai, str)
   # 単騎待ち
   0.upto(8).each do |i|
@@ -151,7 +178,6 @@ def analyzeTanki(pai, str)
     end
   end
 end
-
 
 # 以下実際の処理
 pai = parsePai ARGV[0] unless ARGV[0] == nil
