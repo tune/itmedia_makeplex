@@ -65,7 +65,7 @@ def parsePai(str)
 
   # 入力の妥当性チェック
   if pai.sum != 13 then
-    # 与えられる数字は13毎
+    # 与えられる牌は13枚
     raise RuntimeError
   else
     pai.each do |val|
@@ -82,16 +82,16 @@ end
 #
 # 手牌を再帰的に解析し待ちを表示する
 #
-def analyzeTehai(pai, from=0, str="")
+def analyzeTehai(pai, from=0, mentsu=[])
   if pai.sum > 4 then
     # 面子を揃える
-   
+    
     # 刻子
     from.upto(8).each do |i|
       if pai[i] >= 3 then
         tmp = pai.dup
         tmp[i] -= 3
-        analyzeTehai(tmp, i+1, str + i.anko)
+        analyzeTehai(tmp, i+1, mentsu+[i.anko])
       end
     end
   
@@ -102,7 +102,7 @@ def analyzeTehai(pai, from=0, str="")
         tmp[i] -= 1
         tmp[i+1] -= 1
         tmp[i+2] -= 1
-        analyzeTehai(tmp, i+9, str + i.shuntsu)
+        analyzeTehai(tmp, i+9, mentsu+[i.shuntsu])
       end
     end
 
@@ -114,7 +114,7 @@ def analyzeTehai(pai, from=0, str="")
       if pai[i] >= 2 then
         tmp = pai.dup
         tmp[i] -= 2
-        analyzeMachi(tmp, str + i.atama)
+        analyzeMachi(tmp, mentsu+[i.atama])
       end
     end
 
@@ -124,7 +124,7 @@ def analyzeTehai(pai, from=0, str="")
       if pai[i] >= 3 then
         tmp = pai.dup
         tmp[i] -= 3
-        analyzeTanki(tmp, str + i.anko)
+        analyzeTanki(tmp, mentsu+[i.anko])
       end
     end
   
@@ -135,7 +135,7 @@ def analyzeTehai(pai, from=0, str="")
         tmp[i] -= 1
         tmp[i+1] -= 1
         tmp[i+2] -= 1
-        analyzeTanki(tmp, str + i.shuntsu)
+        analyzeTanki(tmp, mentsu + [i.shuntsu])
       end
     end
   end
@@ -144,25 +144,21 @@ end
 #
 # 4枚から待ちを絞る
 #
-def analyzeMachi(pai, str)
-  # リャンメン(ペンチャン)
-  0.upto(7).each do |i|
-    if pai[i]==1 && pai[i+1]==1 then
-      puts str + i.ryanmen
-    end
-  end
-
-  # カンチャン
-  0.upto(6).each do |i|
-    if pai[i]==1 && pai[i+2]==1 then
-      puts str + i.kanchan
-    end
-  end
-
-  # シャボ
+def analyzeMachi(pai, mentsu)
   0.upto(8).each do |i|
+    # リャンメン(ペンチャン)
+    if pai[i]==1 && pai[i+1]==1 then
+      puts mentsu.sort.to_s + i.ryanmen
+    end
+
+    # カンチャン
+    if pai[i]==1 && pai[i+2]==1 then
+      puts mentsu.sort.to_s + i.kanchan
+    end
+
+    # シャボ
     if pai[i]==2 then
-      puts str + i.shabo
+      puts mentsu.sort.to_s + i.shabo
     end
   end
 end
@@ -170,11 +166,11 @@ end
 #
 # 単騎待ちの数字を調べて待ちを表示する
 #
-def analyzeTanki(pai, str)
+def analyzeTanki(pai, mentsu)
   # 単騎待ち
   0.upto(8).each do |i|
     if pai[i] == 1 then
-      puts str + i.tanki
+      puts mentsu.sort.to_s + i.tanki
     end
   end
 end
